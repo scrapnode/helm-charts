@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  scrapnode:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2022-03-13T03:21:58.328599549Z"
+    description: Scrapnode default application Helm chart
+    digest: d35d34de8fd9623184ac49acfe619035ab55d4ef8b169fc8fe7601dc0462f2e7
+    name: scrapnode
+    type: application
+    urls:
+    - https://github.com/scrapnode/helm-charts/releases/download/scrapnode-0.0.1/scrapnode-0.0.1.tgz
+    version: 0.0.1
+generated: "2022-03-13T03:21:58.190633187Z"
