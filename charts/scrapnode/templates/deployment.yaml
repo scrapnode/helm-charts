@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "scrapnode.fullname" . }}
+  labels:
+    {{- include "scrapnode.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "scrapnode.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "scrapnode.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "scrapnode.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+          {{- range .Values.volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          {{ if .Values.probes -}}
+          {{- if .Values.probes.liveness -}}
+          livenessProbe:
+          {{- if .Values.probes.liveness.exec }}
+            exec:
+              command:
+              {{- range .Values.probes.liveness.exec.command }}
+                - {{ . }}
+              {{- end -}}
+          {{- else }}
+            httpGet:
+              port: {{ .Values.probes.liveness.port }}
+              path: {{ .Values.probes.liveness.path }}
+          {{- end }}
+          {{- end -}}
+          {{- end -}}
+          {{- if .Values.probes -}}
+          {{- if .Values.probes.readiness }}
+          readinessProbe:
+          {{- if .Values.probes.readiness.exec }}
+            exec:
+              command:
+              {{- range .Values.probes.readiness.exec.command }}
+                - {{ . }}
+              {{- end -}}
+          {{- else }}
+            httpGet:
+              port: {{ .Values.probes.readiness.port }}
+              path: {{ .Values.probes.readiness.path }}
+          {{- end }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+          {{- end -}}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.volumeMounts }}
+      volumes:
+      {{- range .Values.volumeMounts }}
+        - name: {{ .name }}
+          {{- if .secretName }}
+          secret:
+            secretName: {{ .secretName }}
+          {{- end }}
+          {{- if .configMapName }}
+          configMap:
+            name: {{ .configMapName }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+
