@@ -68,7 +68,7 @@ affinity: {}
 
 env: []
 
-volumeMounts:
+mountConf:
   []
   # - name: example
   #   mountPath: /path/to/folder

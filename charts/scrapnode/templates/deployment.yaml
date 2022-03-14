@@ -35,9 +35,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
-          {{- if .Values.volumeMounts }}
-          volumeMounts:
-          {{- range .Values.volumeMounts }}
+          {{- if .Values.mountConf }}
+          mountConf:
+          {{- range .Values.mountConf }}
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
               readOnly: {{ .readOnly }}
@@ -96,9 +96,9 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.volumeMounts }}
+      {{- if .Values.mountConf }}
       volumes:
-      {{- range .Values.volumeMounts }}
+      {{- range .Values.mountConf }}
         - name: {{ .name }}
           {{- if .secretName }}
           secret:
